@@ -3,10 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Noor — a modern, offline-first dua & adhkar companion (React + TypeScript PWA)",
+  "description": "Noor \u2014 a modern, offline-first dua & adhkar companion (React + TypeScript PWA)",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
+    "android:sync": "bash scripts/sync-android.sh",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc -b --noEmit"
   },

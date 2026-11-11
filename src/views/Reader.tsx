@@ -7,6 +7,7 @@ import { ProgressRing, Sheet, useToast } from "../components/ui";
 import { go } from "../lib/router";
 import { useRecitation } from "../lib/speech";
 import { cn, shareOrCopy } from "../lib/utils";
+import { haptic } from "../lib/native";
 
 const Reader = ({ id }: { id: string }) => {
   const {
@@ -56,7 +57,7 @@ const Reader = ({ id }: { id: string }) => {
   const handleCount = () => {
     if (done) return;
     incrementDua(dua.id, dua.repeat);
-    if (state.settings.haptics && "vibrate" in navigator) navigator.vibrate?.(12);
+    if (state.settings.haptics) haptic(12);
     if (count + 1 >= dua.repeat) toast(t("dua.completedToast"));
   };
 

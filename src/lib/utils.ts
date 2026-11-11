@@ -1,3 +1,5 @@
+import { androidSaveFile, androidShare } from "./native";
+
 export const cn = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
 
@@ -114,6 +116,8 @@ export const streakFromHistory = (history: string[]): number => {
 };
 
 export const downloadFile = (filename: string, contents: string) => {
+  // Inside the Android shell, hand the file to the native Downloads provider.
+  if (androidSaveFile(filename, contents)) return;
   const blob = new Blob([contents], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -128,6 +132,7 @@ export const shareOrCopy = async (data: {
   text: string;
   url: string;
 }): Promise<"shared" | "copied" | "failed"> => {
+  if (androidShare(`${data.text}\n\n${data.url}`)) return "shared";
   try {
     if (navigator.share) {
       await navigator.share(data);

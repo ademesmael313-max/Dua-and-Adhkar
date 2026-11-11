@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">نور</string>
+    <string name="share_via">مشاركة الدعاء</string>
+    <string name="saved_to_downloads">حُفظت النسخة الاحتياطية في التنزيلات/Noor</string>
+    <string name="notif_channel">أذكار اليوم</string>
+    <string name="notif_channel_description">تذكيرات أذكار الصباح والمساء</string>
+    <string name="notif_morning_title">أذكار الصباح</string>
+    <string name="notif_evening_title">أذكار المساء</string>
+    <string name="notif_body">دقائق هادئة من الذكر تحفظ يومك.</string>
+</resources>

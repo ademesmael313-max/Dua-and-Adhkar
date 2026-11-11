@@ -5,3 +5,11 @@ dist-ssr
 .DS_Store
 *.tsbuildinfo
 .vite
+
+# Android
+android/local.properties
+android/.idea/
+android/.gradle/
+android/build/
+android/app/build/
+*.iml

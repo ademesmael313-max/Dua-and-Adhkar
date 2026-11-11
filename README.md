@@ -102,6 +102,7 @@ src/
 │  └─ tasbeeh.ts            # 12 dhikr presets
 ├─ lib/
 │  ├─ i18n.ts               # typed English + Arabic UI dictionary
+│  ├─ native.ts             # optional bridge to the Android shell
 │  ├─ router.ts             # hash router
 │  ├─ speech.ts             # Arabic recitation with chunking
 │  └─ utils.ts              # dates, Hijri, normalisation, streaks, sharing
@@ -116,6 +117,8 @@ npm install      # install dependencies
 npm run dev      # dev server on 0.0.0.0:5173
 npm run build    # type-check + production build to dist/
 npm run preview  # serve the production build
+
+./scripts/sync-android.sh  # rebuild dist/ and copy it into the Android project
 ```
 
 ---
@@ -140,6 +143,82 @@ typed dictionary (`src/lib/i18n.ts`) with RTL support.
 
 ---
 
+## Android app (Android Studio)
+
+`android/` is a complete Android Studio project that ships the same build inside a WebView. It is
+**not** a Capacitor project: the shell is a few hundred lines of hand-written Kotlin, so there is no
+plugin tree, no extra runtime and no generated config to keep in sync.
+
+| Piece | File |
+| --- | --- |
+| Host activity, WebView, insets, back handling | `android/app/src/main/java/com/noor/dua/MainActivity.kt` |
+| `window.NoorAndroid` bridge (share, save, TTS, haptics, theme, permissions) | `…/com/noor/dua/NativeBridge.kt` |
+| Daily reminder alarms | `…/com/noor/dua/ReminderScheduler.kt` |
+| Notification + reboot receivers | `…/com/noor/dua/ReminderReceiver.kt`, `BootReceiver.kt` |
+| TypeScript side of the bridge | `src/lib/native.ts`, `src/lib/speech.ts` |
+
+### Open it
+
+1. **File → Open…** in Android Studio and pick the **`android/`** folder (not the repository root).
+2. Let Gradle sync. Requirements: JDK 17 or newer (the bundled JetBrains Runtime works) and an Android
+   SDK with **API 35** installed. Gradle 8.11.1 is provided by the wrapper.
+3. Run the `app` configuration on a device or emulator (minSdk 24).
+
+The compiled web bundle is committed under `android/app/src/main/assets/www`, so the project builds
+without Node or npm. After changing anything in `src/` or `public/`, refresh it from the repository
+root:
+
+```bash
+./scripts/sync-android.sh   # npm run build + copy dist/ into assets/www
+```
+
+The build fails early with a clear message if `assets/www/index.html` is missing.
+
+### How the page is served
+
+`WebViewAssetLoader` maps `/assets/` to `src/main/assets` and the app loads
+`https://appassets.androidplatform.net/assets/www/index.html`. Because the page gets a real **https**
+origin (instead of `file://`), `localStorage`, the async clipboard, fonts and the service worker all
+behave exactly as they do on the web. The app requests **no** `INTERNET` permission — everything is
+local.
+
+### What the native shell adds
+
+- **Reminders that survive the app being closed.** The web app mirrors its morning/evening settings
+  through `scheduleReminders(json)`; `AlarmManager` arms inexact, doze-safe alarms and re-arms them
+  after reboots and app updates. Notification permission is requested natively (Android 13+) from
+  **Settings → Reminders**, with a shortcut to the system notification settings when it is blocked.
+- **Share sheet** for a dua and **backup export** to `Downloads/Noor/*.json` via MediaStore.
+- **System text-to-speech** for Arabic recitation (`TextToSpeech`, falls back to the browser API when
+  the app runs in a browser).
+- **Haptics** on tasbeeh taps and long-press actions through the system vibrator.
+- **Status- and navigation-bar icon colours** follow the app's light/dark choice, and the page is laid
+  out edge-to-edge behind the system bars.
+
+Reminders are deliberately inexact: Android may deliver them a few minutes late while the device is
+dozing, which is the right trade-off for adhkar and avoids the Play Store's exact-alarm policy.
+Recitation uses the device's text-to-speech engine, so an Arabic voice must be installed (most devices
+ship one, or offer it from *Settings → System → Languages → Text-to-speech output*).
+
+### Release builds
+
+```bash
+cd android
+./gradlew assembleDebug        # debug APK in app/build/outputs/apk/debug/
+./gradlew bundleRelease        # AAB for Play, signed with your own keystore
+```
+
+`applicationId` is `com.noor.dua` (debug builds use `com.noor.dua.debug`, so both can be installed side
+by side), `versionCode`/`versionName` live in `android/app/build.gradle.kts`. Release builds enable R8
+and resource shrinking; the bridge is kept by `android/app/proguard-rules.pro`. Create the signing key
+with **Build → Generate Signed App Bundle / APK…** and keep it out of version control.
+
+Launcher icons are generated from the same eight-point star as the PWA mark (adaptive foreground,
+monochrome layer for Android 13+ themed icons, round and legacy densities under
+`android/app/src/main/res/mipmap-*`).
+
+---
+
 ## Privacy
 
 No accounts, no analytics, no third-party scripts. Bookmarks, settings, progress and personal duas are
@@ -154,7 +233,7 @@ data**.
 - Recorded human recitation instead of speech synthesis.
 - Qibla compass and prayer-time reminders computed locally.
 - Optional encrypted sync between devices.
-- Native wrappers (Capacitor) for App Store / Play Store distribution.
+- iOS wrapper alongside the existing Android project.
 
 ---
 

@@ -144,6 +144,9 @@ export const en = {
   "settings.notificationsBlocked": "Notifications are blocked in your browser",
   "settings.notificationsHint":
     "Reminders appear while Noor is open, and through your device once installed.",
+  "settings.notificationsNative":
+    "Reminders are scheduled by Android, so they arrive even when Noor is closed.",
+  "settings.openSettings": "Open system settings",
   "settings.data": "Your data",
   "settings.export": "Export my data",
   "settings.resetProgress": "Reset today’s progress",
@@ -337,6 +340,9 @@ export const ar: Record<TranslationKey, string> = {
   "settings.notificationsBlocked": "الإشعارات محظورة في متصفحك",
   "settings.notificationsHint":
     "تظهر التذكيرات أثناء فتح نور، وعلى جهازك بعد تثبيت التطبيق.",
+  "settings.notificationsNative":
+    "تُجدول التذكيرات في أندرويد، فتصلك حتى إن كان نور مغلقًا.",
+  "settings.openSettings": "افتح إعدادات النظام",
   "settings.data": "بياناتك",
   "settings.export": "تصدير بياناتي",
   "settings.resetProgress": "تصفير تقدم اليوم",
