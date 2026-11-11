@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { androidSpeak, androidStopSpeaking, isAndroidApp } from "./native";
 
 const splitForSpeech = (text: string): string[] => {
   const clean = text.replace(/\n+/g, ". ").replace(/\s+/g, " ").trim();
@@ -19,17 +20,29 @@ const splitForSpeech = (text: string): string[] => {
 
 export const useRecitation = (text: string) => {
   const [speaking, setSpeaking] = useState(false);
+  const native = useRef(isAndroidApp()).current;
   const supported = useRef(
-    typeof window !== "undefined" && "speechSynthesis" in window,
+    native || (typeof window !== "undefined" && "speechSynthesis" in window),
   ).current;
 
   const stop = useCallback(() => {
+    if (native) {
+      androidStopSpeaking();
+      setSpeaking(false);
+      return;
+    }
     if (!supported) return;
     window.speechSynthesis.cancel();
     setSpeaking(false);
-  }, [supported]);
+  }, [native, supported]);
 
   const speak = useCallback((): boolean => {
+    if (native) {
+      androidStopSpeaking();
+      androidSpeak(text);
+      setSpeaking(true);
+      return true;
+    }
     if (!supported) return false;
     window.speechSynthesis.cancel();
     const chunks = splitForSpeech(text);
@@ -51,7 +64,18 @@ export const useRecitation = (text: string) => {
     });
     setSpeaking(true);
     return true;
-  }, [supported, text]);
+  }, [native, supported, text]);
+
+  // The native TTS engine reports completion back through this hook.
+  useEffect(() => {
+    if (!native) return;
+    const host = window as unknown as { NoorTtsEnded?: () => void };
+    host.NoorTtsEnded = () => setSpeaking(false);
+    return () => {
+      delete host.NoorTtsEnded;
+      androidStopSpeaking();
+    };
+  }, [native]);
 
   useEffect(() => () => stop(), [stop]);
 

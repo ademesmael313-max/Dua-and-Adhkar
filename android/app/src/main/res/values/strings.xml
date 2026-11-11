@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Noor</string>
+    <string name="share_via">Share dua</string>
+    <string name="saved_to_downloads">Backup saved to Downloads/Noor</string>
+    <string name="notif_channel">Daily adhkar</string>
+    <string name="notif_channel_description">Morning and evening remembrance reminders</string>
+    <string name="notif_morning_title">Morning adhkar</string>
+    <string name="notif_evening_title">Evening adhkar</string>
+    <string name="notif_body">A few quiet minutes of remembrance to protect your day.</string>
+</resources>

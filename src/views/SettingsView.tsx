@@ -3,6 +3,12 @@ import { accents, arabicFonts, useApp, type AccentId, type Language, type Mode }
 import { Icon } from "../components/Icon";
 import { Segmented, Sheet, Toggle, useToast } from "../components/ui";
 import { cn, downloadFile } from "../lib/utils";
+import {
+  androidNotificationPermission,
+  androidOpenNotificationSettings,
+  androidRequestNotifications,
+  isAndroidApp,
+} from "../lib/native";
 
 const Group = ({
   title,
@@ -52,13 +58,25 @@ const SettingsView = () => {
   const [permission, setPermission] = useState<string>("default");
   const [installEvent, setInstallEvent] = useState<InstallEvent | null>(null);
   const [standalone, setStandalone] = useState(false);
+  const native = isAndroidApp();
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
+    const host = window as unknown as {
+      NoorNotificationPermission?: (granted: boolean) => void;
+    };
+
+    if (isAndroidApp()) {
+      setPermission(androidNotificationPermission() ? "granted" : "default");
+      host.NoorNotificationPermission = (granted) => {
+        setPermission(granted ? "granted" : "denied");
+        toast(t(granted ? "settings.notificationsOn" : "settings.notificationsBlocked"));
+      };
+    } else if ("Notification" in window) {
       setPermission(Notification.permission);
     } else {
       setPermission("unsupported");
     }
+
     setStandalone(
       window.matchMedia?.("(display-mode: standalone)").matches ||
         Boolean((navigator as Navigator & { standalone?: boolean }).standalone),
@@ -68,10 +86,20 @@ const SettingsView = () => {
       setInstallEvent(event as InstallEvent);
     };
     window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      delete host.NoorNotificationPermission;
+    };
+  }, [t]);
 
   const askNotifications = async () => {
+    if (native) {
+      if (androidRequestNotifications()) {
+        setPermission("granted");
+        toast(t("settings.notificationsOn"));
+      }
+      return;
+    }
     if (!("Notification" in window)) {
       toast(t("settings.notificationsHint"));
       return;
@@ -283,19 +311,26 @@ const SettingsView = () => {
           </div>
         </Row>
         <div className="settings-block settings-notify">
-          <p>{t("settings.notificationsHint")}</p>
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={askNotifications}
-            disabled={permission === "granted" || permission === "denied"}
-          >
+          <p>{native ? t("settings.notificationsNative") : t("settings.notificationsHint")}</p>
+          {native && permission === "denied" ? (
+            <button className="btn btn-outline btn-sm" onClick={androidOpenNotificationSettings}>
+              <Icon name="settings" size={15} />
+              {t("settings.openSettings")}
+            </button>
+          ) : (
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={askNotifications}
+              disabled={permission === "granted" || permission === "denied"}
+            >
             <Icon name="bell" size={15} />
-            {permission === "granted"
-              ? t("settings.notificationsOn")
-              : permission === "denied"
-                ? t("settings.notificationsBlocked")
-                : t("settings.enableNotifications")}
-          </button>
+              {permission === "granted"
+                ? t("settings.notificationsOn")
+                : permission === "denied"
+                  ? t("settings.notificationsBlocked")
+                  : t("settings.enableNotifications")}
+            </button>
+          )}
         </div>
         <Row title={t("tasbeeh.haptics")}>
           <Toggle
@@ -349,7 +384,7 @@ const SettingsView = () => {
           <h3>{t("settings.authenticity")}</h3>
           <p className="muted-note">{t("settings.authenticityText")}</p>
           <div className="about-actions">
-            {standalone ? (
+            {standalone || native ? (
               <span className="chip chip-soft">
                 <Icon name="checkCircle" size={13} /> {t("settings.installed")}
               </span>

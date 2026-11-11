@@ -2,7 +2,7 @@
   "name": "Noor — Dua & Adhkar",
   "short_name": "Noor",
   "description": "A quiet place for remembrance. Authentic dua and adhkar with transliteration, translation, tasbeeh and daily reminders — offline first.",
-  "id": "/",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

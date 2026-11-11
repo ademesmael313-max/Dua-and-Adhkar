@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-mode="dark" data-accent="emerald">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Noor · Dua & Adhkar</title>
+    <meta
+      name="description"
+      content="Noor is a modern, offline-first companion for authentic dua and adhkar — nine chapters, transliteration, translation and a beautiful tasbeeh."
+    />
+    <meta name="theme-color" content="#07130f" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Noor" />
+    <meta property="og:title" content="Noor · Dua & Adhkar" />
+    <meta
+      property="og:description"
+      content="A quiet place for remembrance — authentic dua and adhkar with translation, transliteration and tasbeeh."
+    />
+    <meta property="og:type" content="website" />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        var raw = localStorage.getItem("noor.state.v1");
+        if (raw) {
+          var s = JSON.parse(raw).settings || {};
+          var mode = s.mode === "system" || !s.mode
+            ? window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"
+            : s.mode;
+          document.documentElement.dataset.mode = mode;
+          if (s.accent) document.documentElement.dataset.accent = s.accent;
+          var hues = { emerald: [160,188], indigo: [238,262], rose: [344,322], amber: [34,45], ocean: [198,218], plum: [278,302], sage: [130,150], slate: [214,232], crimson: [352,12], citrus: [62,42], azure: [206,224], mauve: [300,318] };
+          var pair = hues[s.accent] || hues.emerald;
+          document.documentElement.style.setProperty("--ah", pair[0]);
+          document.documentElement.style.setProperty("--ah2", pair[1]);
+        }
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="./assets/index-DtEdTxdF.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DNTVB2js.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

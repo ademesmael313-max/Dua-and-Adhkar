@@ -13,6 +13,7 @@ import { tasbeehPresets } from "./data/tasbeeh";
 import type { CategoryId } from "./data/categories";
 import { clamp, dateKey, streakFromHistory, uid } from "./lib/utils";
 import { en, ar, type TranslationKey } from "./lib/i18n";
+import { androidScheduleReminders, androidSetTheme } from "./lib/native";
 
 export type Mode = "light" | "dark" | "system";
 export type Language = "en" | "ar";
@@ -233,7 +234,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     root.lang = settings.language;
     root.dir = settings.language === "ar" ? "rtl" : "ltr";
     document.body.dataset.lang = settings.language;
+    androidSetTheme(resolved);
   }, [state.settings]);
+
+  // Keep the native alarm schedule in sync with the reminder settings.
+  useEffect(() => {
+    androidScheduleReminders(state.settings.reminders);
+  }, [state.settings.reminders]);
 
   useEffect(() => {
     if (state.settings.mode !== "system") return;

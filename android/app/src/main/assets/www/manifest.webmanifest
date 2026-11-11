@@ -1,0 +1,56 @@
+{
+  "name": "Noor — Dua & Adhkar",
+  "short_name": "Noor",
+  "description": "A quiet place for remembrance. Authentic dua and adhkar with transliteration, translation, tasbeeh and daily reminders — offline first.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#07130f",
+  "theme_color": "#07130f",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["books", "lifestyle", "education"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tasbeeh",
+      "short_name": "Tasbeeh",
+      "url": "./#/tasbeeh",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Saved duas",
+      "short_name": "Saved",
+      "url": "./#/saved",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Morning adhkar",
+      "short_name": "Morning",
+      "url": "./#/c/morning",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

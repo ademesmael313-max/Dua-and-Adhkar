@@ -12,6 +12,7 @@ import TasbeehView from "./views/TasbeehView";
 import MyDuasView from "./views/MyDuasView";
 import SettingsView from "./views/SettingsView";
 import type { CategoryId } from "./data/categories";
+import { isAndroidApp } from "./lib/native";
 
 const navItems: Array<{ route: Route; icon: IconName; key: "home" | "search" | "tasbeeh" | "saved" | "settings" }> = [
   { route: { name: "home" }, icon: "home", key: "home" },
@@ -182,6 +183,8 @@ const useReminders = () => {
   const { state, t } = useApp();
   const { reminders } = state.settings;
   useEffect(() => {
+    // The Android shell schedules real alarms natively (see ReminderScheduler).
+    if (isAndroidApp()) return;
     if (typeof window === "undefined" || !("Notification" in window)) return;
     const tick = () => {
       if (Notification.permission !== "granted") return;

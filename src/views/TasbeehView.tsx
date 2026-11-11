@@ -4,6 +4,7 @@ import { tasbeehPresets, targetOptions } from "../data/tasbeeh";
 import { Icon } from "../components/Icon";
 import { ProgressRing, useToast } from "../components/ui";
 import { cn } from "../lib/utils";
+import { haptic } from "../lib/native";
 
 const TasbeehView = () => {
   const { t, state, countTasbeeh, resetTasbeeh, selectDhikr, setTarget } = useApp();
@@ -19,7 +20,7 @@ const TasbeehView = () => {
   const tap = () => {
     const willComplete = tasbeeh.count + 1 >= tasbeeh.target;
     countTasbeeh();
-    if (state.settings.haptics && "vibrate" in navigator) navigator.vibrate?.(10);
+    if (state.settings.haptics) haptic(10);
     if (willComplete) toast(t("tasbeeh.reached"));
   };
 
