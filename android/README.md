@@ -1,16 +1,25 @@
 # Noor for Android
 
-This folder is the Android Studio project. Open **this** folder (`android/`), not the repository
-root — the root is the web app and has no Gradle build.
+**Open the repository root** (`Dua-and-Adhkar/`) in Android Studio: it is a Gradle project that
+includes the `app` module from this folder, so Studio offers *Sync Project with Gradle Files* and
+starts syncing on open. This `android/` folder is also a self-contained Gradle project, so opening it
+directly works too — pick either one, not both at once.
 
 ```
-android/
-├─ settings.gradle.kts      # plugins + repositories, includes :app
-├─ build.gradle.kts         # AGP 8.7.3, Kotlin 2.0.21 (declared, not applied)
+Dua-and-Adhkar/               # <- Gradle project root (recommended Android Studio entry point)
+├─ settings.gradle.kts        # includes :app -> android/app
+├─ build.gradle.kts           # AGP 8.7.3, Kotlin 2.0.21 (keep in sync with android/build.gradle.kts)
 ├─ gradle.properties
-├─ gradlew / gradlew.bat    # Gradle 8.11.1 wrapper
-├─ gradle/wrapper/          # wrapper jar + distribution URL
-└─ app/                     # the application module (com.noor.dua)
+├─ gradlew / gradlew.bat      # Gradle 8.11.1 wrapper
+├─ gradle/wrapper/            # wrapper jar + distribution URL
+├─ src/, public/              # the web app (npm run build)
+└─ android/
+   ├─ settings.gradle.kts     # standalone alternative entry point (same versions)
+   ├─ build.gradle.kts
+   ├─ gradle.properties
+   ├─ gradlew / gradlew.bat
+   ├─ gradle/wrapper/
+   └─ app/                    # the application module (com.noor.dua)
 ```
 
 The compiled web app is committed under `app/src/main/assets/www`, so the project builds with no
@@ -28,6 +37,11 @@ Node.js. After changing anything under `../src` or `../public`, run from the rep
 | Gradle JDK | 17 or newer — the embedded JDK 21 is ideal |
 | Android SDK | Platform 35 (Android 15) + Build-Tools 35.0.0 |
 | Gradle | downloaded by the wrapper (8.11.1) |
+
+If Android Studio shows no Gradle window or a greyed-out sync action, the open folder is not a
+Gradle root: use **File → Open…** and pick the repository root (or `android/`) — a parent folder such as
+`~/Projects` will not work. Once a Gradle root is open, sync lives in the **elephant icon** in the
+toolbar, **Build → Sync Project with Gradle Files**, or **View → Tool Windows → Gradle**.
 
 Check the JDK in **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**
 and the SDK in **Settings → Languages & Frameworks → Android SDK**.
@@ -54,7 +68,7 @@ error, **Build → Clean Project** first.
 ## Run and build
 
 - Debug: pick the `app` configuration and a device/emulator (API 24+), press **Run**.
-- APK: `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
+- APK: `./gradlew assembleDebug` → `android/app/build/outputs/apk/debug/app-debug.apk`.
 - Play bundle: **Build → Generate Signed App Bundle / APK…**, or `./gradlew bundleRelease` with your
   own signing config (the release build enables R8; `app/proguard-rules.pro` keeps the JS bridge).
 

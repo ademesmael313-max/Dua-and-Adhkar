@@ -13,3 +13,9 @@ android/.gradle/
 android/build/
 android/app/build/
 *.iml
+
+# Gradle project at the repository root (Android Studio opens the repo)
+/.gradle/
+/local.properties
+/build/
+/.idea/
