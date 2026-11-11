@@ -13,8 +13,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
-
-        resourceConfigurations += listOf("en", "ar")
     }
 
     buildTypes {
@@ -39,14 +37,6 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
-    }
-
-    buildFeatures {
-        buildConfig = false
-    }
-
-    packaging {
-        resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
     }
 }
 

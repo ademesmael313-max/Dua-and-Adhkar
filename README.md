@@ -159,7 +159,8 @@ plugin tree, no extra runtime and no generated config to keep in sync.
 
 ### Open it
 
-1. **File → Open…** in Android Studio and pick the **`android/`** folder (not the repository root).
+1. **File → Open…** in Android Studio and pick the **`android/`** folder (not the repository root —
+   that folder is the web app and has no Gradle build).
 2. Let Gradle sync. Requirements: JDK 17 or newer (the bundled JetBrains Runtime works) and an Android
    SDK with **API 35** installed. Gradle 8.11.1 is provided by the wrapper.
 3. Run the `app` configuration on a device or emulator (minSdk 24).
@@ -173,6 +174,9 @@ root:
 ```
 
 The build fails early with a clear message if `assets/www/index.html` is missing.
+
+If **Gradle sync fails**, `android/README.md` lists the usual causes (Gradle JDK, missing API 35
+platform, offline mode / proxy, wrapper download, Studio older than AGP 8.7) next to their fixes.
 
 ### How the page is served
 
