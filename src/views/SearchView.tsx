@@ -5,7 +5,35 @@ import { duas } from "../data/duas";
 import { DuaRow } from "../components/DuaRow";
 import { Icon } from "../components/Icon";
 import { EmptyState } from "../components/ui";
-import { buildHaystack, matches } from "../lib/utils";
+import { buildHaystack, matches, normalizeLatin } from "../lib/utils";
+
+/** Common alternate spellings and related terms, so a half-remembered word still finds its dua. */
+const aliases: Record<string, string[]> = {
+  istighfar: ["forgiveness", "astaghfirullah", "repentance"],
+  istigfar: ["forgiveness", "astaghfirullah", "repentance"],
+  shifa: ["healing", "cure", "illness"],
+  ruqya: ["healing", "cure", "recitation"],
+  ruqyah: ["healing", "cure", "recitation"],
+  salat: ["salah", "prayer"],
+  salaat: ["salah", "prayer"],
+  prayer: ["salah"],
+  dhikr: ["remembrance", "tasbih", "glory"],
+  tasbih: ["tasbeeh", "glory", "subhanallah"],
+  tasbeeh: ["tasbih", "glory", "subhanallah"],
+  worry: ["anxiety", "distress", "hardship"],
+  sad: ["sorrow", "grief", "anxiety"],
+  debt: ["anxiety", "hardship"],
+  sleep: ["night", "waking", "bed"],
+  food: ["eating", "meal"],
+  rizq: ["provision", "sustenance"],
+  protect: ["protection", "refuge", "shield"],
+  travel: ["journey", "safar"],
+  safar: ["travel", "journey"],
+  parents: ["mother", "father", "walidayn"],
+  rain: ["downpour", "weather"],
+  mosque: ["masjid", "prayer"],
+  masjid: ["mosque", "prayer"],
+};
 
 const searchIndex = duas.map((dua) => {
   const category = categories.find((c) => c.id === dua.categoryId);
@@ -21,6 +49,8 @@ const searchIndex = duas.map((dua) => {
       duoCategory(dua.categoryId),
       category?.name,
       category?.nameAr,
+      category?.tagline,
+      category?.description,
     ]),
   };
 });
@@ -48,7 +78,11 @@ const SearchView = () => {
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    return searchIndex.filter((entry) => matches(entry.haystack, query)).map((e) => e.dua);
+    const normalized = normalizeLatin(query) || query.trim().toLowerCase();
+    const terms = [query, ...(aliases[normalized] ?? [])];
+    return searchIndex
+      .filter((entry) => terms.some((term) => matches(entry.haystack, term)))
+      .map((e) => e.dua);
   }, [query]);
 
   const chapterHits = useMemo(() => {
