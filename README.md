@@ -159,7 +159,9 @@ plugin tree, no extra runtime and no generated config to keep in sync.
 
 ### Open it
 
-1. **File → Open…** in Android Studio and pick the **`android/`** folder (not the repository root).
+1. **File → Open…** in Android Studio and pick the **repository root** (`Dua-and-Adhkar/`). The root
+   is now a Gradle project that builds the `android/app` module, so Studio syncs as soon as it opens.
+   Opening the **`android/`** folder still works too — both entry points build the same module.
 2. Let Gradle sync. Requirements: JDK 17 or newer (the bundled JetBrains Runtime works) and an Android
    SDK with **API 35** installed. Gradle 8.11.1 is provided by the wrapper.
 3. Run the `app` configuration on a device or emulator (minSdk 24).
@@ -173,6 +175,9 @@ root:
 ```
 
 The build fails early with a clear message if `assets/www/index.html` is missing.
+
+If **Gradle sync fails**, `android/README.md` lists the usual causes (Gradle JDK, missing API 35
+platform, offline mode / proxy, wrapper download, Studio older than AGP 8.7) next to their fixes.
 
 ### How the page is served
 
@@ -203,10 +208,11 @@ ship one, or offer it from *Settings → System → Languages → Text-to-speech
 ### Release builds
 
 ```bash
-cd android
-./gradlew assembleDebug        # debug APK in app/build/outputs/apk/debug/
+./gradlew assembleDebug        # debug APK in android/app/build/outputs/apk/debug/
 ./gradlew bundleRelease        # AAB for Play, signed with your own keystore
 ```
+
+(`cd android && ./gradlew …` works as well, if you prefer the module folder as the project root.)
 
 `applicationId` is `com.noor.dua` (debug builds use `com.noor.dua.debug`, so both can be installed side
 by side), `versionCode`/`versionName` live in `android/app/build.gradle.kts`. Release builds enable R8
