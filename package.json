@@ -1,0 +1,33 @@
+{
+  "name": "noor-dua-azkar",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Noor — a modern, offline-first dua & adhkar companion (React + TypeScript PWA)",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/amiri": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/lateef": "^5.3.0",
+    "@fontsource/noto-kufi-arabic": "^5.3.0",
+    "@fontsource/noto-naskh-arabic": "^5.3.0",
+    "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "@fontsource/reem-kufi": "^5.3.0",
+    "@fontsource/scheherazade-new": "^5.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "license": "MIT"
+}
