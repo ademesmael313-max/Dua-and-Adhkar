@@ -16,6 +16,7 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.Toast
@@ -36,41 +37,61 @@ class NativeBridge(
 
     private var tts: TextToSpeech? = null
     private var ttsReady = false
+    private var arabicVoice = false
     private var released = false
     private var pendingSpeech: String? = null
 
     fun initialize() {
-        tts = TextToSpeech(activity) { status ->
-            val engine = tts
-            if (released) {
-                engine?.shutdown()
-                tts = null
-            } else if (status == TextToSpeech.SUCCESS && engine != null) {
-                val arabic = engine.setLanguage(Locale("ar", "SA"))
-                if (arabic == TextToSpeech.LANG_MISSING_DATA ||
-                    arabic == TextToSpeech.LANG_NOT_SUPPORTED
-                ) {
-                    engine.setLanguage(Locale.getDefault())
-                }
-                engine.setSpeechRate(0.85f)
-                engine.setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build(),
-                )
-                engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) = Unit
-                    override fun onDone(utteranceId: String?) = notifySpeechFinished()
-                    override fun onError(utteranceId: String?) = notifySpeechFinished()
-                })
-                ttsReady = true
-                pendingSpeech?.let { queued ->
-                    pendingSpeech = null
-                    speakNow(queued)
-                }
-            }
+        if (released || tts != null) return
+        tts = TextToSpeech(activity) { status -> onEngineReady(status) }
+    }
+
+    private fun onEngineReady(status: Int) {
+        val engine = tts
+        if (released) {
+            runCatching { engine?.shutdown() }
+            tts = null
+            return
         }
+        if (status != TextToSpeech.SUCCESS || engine == null) {
+            Log.w(TAG, "TTS engine unavailable (status=$status)")
+            markEngineMissing(engine)
+            return
+        }
+        val language = engine.setLanguage(Locale("ar", "SA"))
+        arabicVoice = language >= TextToSpeech.LANG_AVAILABLE
+        Log.i(TAG, "TTS ready, setLanguage(ar-SA)=$language arabicVoice=$arabicVoice")
+        if (!arabicVoice) {
+            // Keep a usable default voice, but recitation stays disabled until an
+            // Arabic voice is installed - an English voice would read Arabic as silence.
+            engine.setLanguage(Locale.getDefault())
+        }
+        engine.setSpeechRate(0.85f)
+        engine.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build(),
+        )
+        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) = Unit
+            override fun onDone(utteranceId: String?) = notifySpeechFinished()
+            override fun onError(utteranceId: String?) = notifySpeechFinished()
+        })
+        ttsReady = true
+        pendingSpeech?.let { queued ->
+            pendingSpeech = null
+            if (arabicVoice) speakNow(queued) else notifyTtsError()
+        }
+    }
+
+    /** Drops a dead engine so the next tap can try again (a voice may be installed). */
+    private fun markEngineMissing(engine: TextToSpeech?) {
+        ttsReady = false
+        pendingSpeech = null
+        runCatching { engine?.shutdown() }
+        tts = null
+        notifyTtsError()
     }
 
     fun shutdown() {
@@ -84,13 +105,24 @@ class NativeBridge(
 
     private fun speakNow(text: String) {
         activity.runOnUiThread {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "noor-dua")
+            val engine = tts ?: return@runOnUiThread
+            val result = engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "noor-dua")
+            if (result == TextToSpeech.ERROR) {
+                Log.w(TAG, "TTS speak() failed")
+                notifyTtsError()
+            }
         }
     }
 
     private fun notifySpeechFinished() {
         webView.post {
             webView.evaluateJavascript("window.NoorTtsEnded && window.NoorTtsEnded()", null)
+        }
+    }
+
+    private fun notifyTtsError() {
+        webView.post {
+            webView.evaluateJavascript("window.NoorTtsError && window.NoorTtsError()", null)
         }
     }
 
@@ -250,13 +282,29 @@ class NativeBridge(
 
     // ----------------------------------------------------------------- tts
 
+    /** True only when the engine is ready *and* an Arabic voice is installed. */
     @JavascriptInterface
-    fun ttsAvailable(): Boolean = ttsReady
+    fun ttsAvailable(): Boolean = ttsReady && arabicVoice
 
     @JavascriptInterface
     fun speak(text: String) {
+        if (released) return
         if (!ttsReady) {
             pendingSpeech = text
+            // A previous attempt may have failed before the user installed a voice.
+            if (tts == null) initialize()
+            // Never leave the button spinning: if the engine does not come up,
+            // tell the page so it can point at the system voice settings.
+            webView.postDelayed({
+                if (!released && !ttsReady) {
+                    pendingSpeech = null
+                    notifyTtsError()
+                }
+            }, INIT_TIMEOUT_MS)
+            return
+        }
+        if (!arabicVoice) {
+            notifyTtsError()
             return
         }
         speakNow(text)
@@ -268,7 +316,24 @@ class NativeBridge(
         activity.runOnUiThread { tts?.stop() }
     }
 
+    /** Opens the system screen where an Arabic text-to-speech voice can be installed. */
+    @JavascriptInterface
+    fun openTtsSettings() {
+        activity.runOnUiThread {
+            val candidates = listOf(
+                Intent("com.android.settings.TTS_SETTINGS"),
+                Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA),
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
+            )
+            for (intent in candidates) {
+                if (runCatching { activity.startActivity(intent) }.isSuccess) return@runOnUiThread
+            }
+        }
+    }
+
     companion object {
         const val REQUEST_NOTIFICATIONS = 8001
+        private const val INIT_TIMEOUT_MS = 5_000L
+        private const val TAG = "NoorTts"
     }
 }

@@ -65,6 +65,24 @@ almost always one of these:
 After fixing a cause, use **File → Sync Project with Gradle Files**; if Studio keeps showing the old
 error, **Build → Clean Project** first.
 
+## No sound when tapping **Listen**
+
+Recitation is spoken by the device's text-to-speech engine, not by audio files. The app now:
+
+- declares `<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>`
+  — without it, Android 11+ hides the TTS engine from the app and speech never starts;
+- only recites when an **Arabic** voice is actually installed (an English voice reads Arabic as silence);
+- reports failures back to the page, which shows *"No Arabic voice is installed"*;
+- offers **Settings → Reading → Recitation voice**, which opens the system TTS screen.
+
+If it is still silent:
+
+- `adb logcat -s NoorTts` prints the engine status, e.g. `TTS ready, setLanguage(ar-SA)=1 arabicVoice=true`;
+  `setLanguage` returning `-1`/`-2` means the voice data is missing.
+- Emulator images without Google Play ship no TTS engine at all — use a *Google Play* system image and
+  install **Speech Recognition & Synthesis** plus Arabic voice data.
+- TTS plays on the **media** stream: check that media volume is up and the device is not in silent mode.
+
 ## Run and build
 
 - Debug: pick the `app` configuration and a device/emulator (API 24+), press **Run**.
