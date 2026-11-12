@@ -6,6 +6,7 @@ import { cn, downloadFile } from "../lib/utils";
 import {
   androidNotificationPermission,
   androidOpenNotificationSettings,
+  androidOpenTtsSettings,
   androidRequestNotifications,
   isAndroidApp,
 } from "../lib/native";
@@ -259,6 +260,14 @@ const SettingsView = () => {
             label={t("settings.showTranslation")}
           />
         </Row>
+        {native && (
+          <Row title={t("settings.recitationVoice")} hint={t("settings.recitationVoiceHint")}>
+            <button className="btn btn-outline btn-sm" onClick={androidOpenTtsSettings}>
+              <Icon name="volume" size={15} />
+              {t("settings.openSettings")}
+            </button>
+          </Row>
+        )}
       </Group>
 
       <Group title={t("settings.language")} icon={<Icon name="globe" size={16} />}>

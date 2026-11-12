@@ -28,7 +28,7 @@ const Reader = ({ id }: { id: string }) => {
   const index = dua ? siblings.findIndex((d) => d.id === dua.id) : -1;
   const prev = index > 0 ? siblings[index - 1] : null;
   const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : null;
-  const recitation = useRecitation(dua?.arabic ?? "");
+  const recitation = useRecitation(dua?.arabic ?? "", () => toast(t("dua.noSpeechNative")));
 
   if (!dua) {
     return (

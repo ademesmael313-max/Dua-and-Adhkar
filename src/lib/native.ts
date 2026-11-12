@@ -22,6 +22,7 @@ interface NoorAndroidBridge {
   requestNotificationPermission(): boolean;
   notificationPermission(): boolean;
   openNotificationSettings(): void;
+  openTtsSettings(): void;
   ttsAvailable(): boolean;
   speak(text: string): void;
   stopSpeaking(): void;
@@ -101,6 +102,11 @@ export const androidRequestNotifications = (): boolean => {
 export const androidOpenNotificationSettings = (): void => {
   const bridge = getBridge();
   if (bridge) guard(() => bridge.openNotificationSettings(), undefined);
+};
+
+export const androidOpenTtsSettings = (): void => {
+  const bridge = getBridge();
+  if (bridge) guard(() => bridge.openTtsSettings(), undefined);
 };
 
 export const androidTtsAvailable = (): boolean => {

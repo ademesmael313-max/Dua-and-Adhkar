@@ -18,8 +18,9 @@ const splitForSpeech = (text: string): string[] => {
   return chunks.length ? chunks : [clean];
 };
 
-export const useRecitation = (text: string) => {
+export const useRecitation = (text: string, onError?: () => void) => {
   const [speaking, setSpeaking] = useState(false);
+  const errorRef = useRef(onError);
   const native = useRef(isAndroidApp()).current;
   const supported = useRef(
     native || (typeof window !== "undefined" && "speechSynthesis" in window),
@@ -50,15 +51,38 @@ export const useRecitation = (text: string) => {
     const arabicVoice =
       voices.find((v) => v.lang?.toLowerCase().startsWith("ar")) ??
       voices.find((v) => /arab/i.test(v.name));
+    // Browsers without an Arabic voice accept the utterance and stay silent, so
+    // watch for the first "start" event and report a failure when it never comes.
+    let started = false;
+    const watchdog = window.setTimeout(() => {
+      if (started) return;
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      errorRef.current?.();
+    }, 2500);
+
     chunks.forEach((chunk, index) => {
       const utterance = new SpeechSynthesisUtterance(chunk);
       utterance.lang = "ar-SA";
       if (arabicVoice) utterance.voice = arabicVoice;
       utterance.rate = 0.82;
       utterance.pitch = 1;
+      if (index === 0) {
+        utterance.onstart = () => {
+          started = true;
+          window.clearTimeout(watchdog);
+        };
+      }
       if (index === chunks.length - 1) {
-        utterance.onend = () => setSpeaking(false);
-        utterance.onerror = () => setSpeaking(false);
+        utterance.onend = () => {
+          window.clearTimeout(watchdog);
+          setSpeaking(false);
+        };
+        utterance.onerror = () => {
+          window.clearTimeout(watchdog);
+          setSpeaking(false);
+          errorRef.current?.();
+        };
       }
       window.speechSynthesis.speak(utterance);
     });
@@ -66,13 +90,25 @@ export const useRecitation = (text: string) => {
     return true;
   }, [native, supported, text]);
 
-  // The native TTS engine reports completion back through this hook.
+  useEffect(() => {
+    errorRef.current = onError;
+  }, [onError]);
+
+  // The native TTS engine reports completion and failures back through this hook.
   useEffect(() => {
     if (!native) return;
-    const host = window as unknown as { NoorTtsEnded?: () => void };
+    const host = window as unknown as {
+      NoorTtsEnded?: () => void;
+      NoorTtsError?: () => void;
+    };
     host.NoorTtsEnded = () => setSpeaking(false);
+    host.NoorTtsError = () => {
+      setSpeaking(false);
+      errorRef.current?.();
+    };
     return () => {
       delete host.NoorTtsEnded;
+      delete host.NoorTtsError;
       androidStopSpeaking();
     };
   }, [native]);
